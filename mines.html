@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>51game Mines Predictor</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      height: 100vh;
+      margin: 0;
+      padding-top: 20px;
+    }
+
+    /* Info Button inside card */
+    #infoBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 18px;
+      padding: 6px 12px;
+      border-radius: 50%;
+      background: #1e88e5;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      z-index: 2;
+    }
+    #infoBtn:hover {
+      background: #1565c0;
+    }
+
+    /* Popup Box */
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #166534;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+      z-index: 1000;
+      display: none;
+    }
+    .popup h2 {
+      margin-top: 0;
+      color: #22c55e;
+    }
+    .popup p {
+      font-size: 16px;
+      margin: 15px 0;
+      color: #d1fae5;
+    }
+    .popup button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 5px;
+    }
+    .play-audio-btn {
+      background: #28a745;
+      color: white;
+    }
+    .play-audio-btn:hover {
+      background: #218838;
+    }
+    .ok-btn {
+      background: #1e88e5;
+      color: white;
+    }
+    .ok-btn:hover {
+      background: #1565c0;
+    }
+
+    /* Card */
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      background: linear-gradient(145deg, #d0e7ff, #a3c4f3);
+      padding: 15px 20px;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+      margin-bottom: 20px;
+    }
+    .card img {
+      width: 90px;
+      height: 90px;
+      border-radius: 10px;
+      border: 2px solid #1e88e5;
+    }
+    .cardinfo {
+      margin-left: 15px;
+      color: #1565c0;
+    }
+
+    /* Grid */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      grid-template-rows: repeat(5, 60px);
+      gap: 12px;
+    }
+    .grid-item {
+      width: 60px;
+      height: 60px;
+      background: #bbdefb;
+      border: 3px solid #1e88e5;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .grid-item:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    .mine {
+      background-image: url('/assets/star.png');
+      background-size: cover;
+      background-position: center;
+      animation: pop 0.5s ease-in-out;
+    }
+    @keyframes pop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Buttons */
+    #startBtn {
+      padding: 14px 30px;
+      font-size: 18px;
+      margin-top: 20px;
+      background: linear-gradient(145deg, #2196f3, #1565c0);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    #startBtn:hover {
+      background: linear-gradient(145deg, #1565c0, #2196f3);
+      transform: scale(1.05);
+    }
+    .button-container {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .link-btn {
+      padding: 12px 25px;
+      background: #1e88e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+    .link-btn:hover {
+      background: #1565c0;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Popup -->
+  <div class="overlay" id="overlay"></div>
+  <div class="popup" id="popup">
+    <h2>📘 How to Use</h2>
+    <p>
+      1. Open Mines game<br>
+      2. Mines Set: 3💣<br>
+      3. Star open: 5⭐<br>
+
+      4. Click "START PREDICTION" to generate mine positions.<br>
+       5. Follow the safe tiles shown on the grid.<br>
+       6. If fail your first bet then follow same prediction upto 4 times.<br>
+       7. Use these predictions in your 51game Mines game.</p>
+    <button class="ok-btn" onclick="closePopup()">OK</button>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+    <button id="infoBtn">ℹ️</button>
+    <img src="/logo.png" alt="Game Image">
+    <div class="cardinfo">
+      <h5>WELCOME TO THE MINES HACK</h5>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid-container" id="gridContainer"></div>
+  <button id="startBtn">START</button>
+
+  <!-- Links -->
+  <div class="button-container">
+    <button class="link-btn" onclick="window.open('links.html', '_blank')">🔗 OFFICIAL LINK'S</button>
+    
+  </div>
+
+  <script>
+    const infoBtn = document.getElementById('infoBtn');
+    const popup = document.getElementById('popup');
+    const overlay = document.getElementById('overlay');
+    const gridContainer = document.getElementById('gridContainer');
+    const startBtn = document.getElementById('startBtn');
+    let isFirstPrediction = true;
+
+    // Show popup
+    infoBtn.addEventListener('click', () => {
+      popup.style.display = 'block';
+      overlay.style.display = 'block';
+    });
+
+    // Close popup
+    function closePopup() {
+      popup.style.display = 'none';
+      overlay.style.display = 'none';
+    }
+
+    // Play audio
+    function playAudio() {
+      const audio = document.getElementById('popupAudio');
+      audio.play();
+    }
+
+    // Create grid
+    function createGrid() {
+      gridContainer.innerHTML = '';
+      for (let i = 0; i < 25; i++) {
+        const gridItem = document.createElement('div');
+        gridItem.classList.add('grid-item');
+        gridContainer.appendChild(gridItem);
+      }
+    }
+
+    // Place mines
+    function placeMines() {
+      const minePositions = new Set();
+      while (minePositions.size < 5) {
+        minePositions.add(Math.floor(Math.random() * 25));
+      }
+      minePositions.forEach(index => {
+        gridContainer.children[index].classList.add('mine');
+      });
+    }
+
+    // Start prediction
+    startBtn.addEventListener('click', () => {
+      createGrid();
+      placeMines();
+      if (isFirstPrediction) {
+        startBtn.textContent = 'NEXT';
+        isFirstPrediction = false;
+      }
+    });
+
+    // Init
+    createGrid();
+  </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>WINGO HACK</title>
+<style>
+  body{margin:0;font-family:Arial, sans-serif;background:#0d0d1a;color:#fff;
+       display:flex;justify-content:center;min-height:100vh;padding:15px}
+  .app{width:100%;max-width:420px;display:flex;flex-direction:column;gap:15px}
+
+  .card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);
+        border-radius:14px;padding:16px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+
+  .header{text-align:center}
+  .logo-img{width:90px;height:90px;border-radius:50%;object-fit:cover;
+            box-shadow:0 0 20px rgba(255,204,0,0.5)}
+  .title{margin-top:10px;font-size:20px;font-weight:800;color:#ffd54a}
+  .subtitle{font-size:13px;color:#bbb}
+
+  .slots{display:flex;gap:10px;justify-content:center;margin-top:12px}
+  .slot{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;
+        border:1px dashed rgba(255,255,255,0.2);font-weight:700;color:#bbb}
+  .slot.big{background:linear-gradient(145deg,#ffd54a,#ffb300);color:#111}
+  .slot.small{background:linear-gradient(145deg,#7ef1d1,#28d8c5);color:#012}
+
+  .controls{display:flex;gap:10px;justify-content:center;margin-top:12px}
+  .btn{padding:12px 16px;border:none;border-radius:12px;font-weight:700;cursor:pointer}
+  .btn.big{background:linear-gradient(45deg,#ffd54a,#ffb300);color:#111}
+  .btn.small{background:linear-gradient(45deg,#7ef1d1,#2fe6c6);color:#012}
+  .btn.back{background:#222;border:1px solid rgba(255,255,255,0.2);color:#fff}
+
+  .start-div{text-align:center}
+  .start-btn{padding:14px 30px;border:none;border-radius:14px;font-weight:800;
+             background:linear-gradient(45deg,#ffcc00,#ff9900);color:#111;cursor:pointer}
+
+  .result{display:none;text-align:center;margin-top:12px;animation:fadeIn 0.5s ease}
+  .res-card{margin-top:10px;padding:16px;border-radius:16px;
+            background:linear-gradient(135deg,#ffd54a,#ffb300);
+            color:#111;font-weight:900;font-size:22px;
+            box-shadow:0 0 25px rgba(255,204,0,0.6);animation:bounce 0.5s ease}
+  .countdown{margin-top:8px;font-size:13px;color:#ff8080}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes bounce{0%{transform:scale(0.8)}100%{transform:scale(1)}}
+
+  .tg-btn{width:100%;padding:14px;border:none;border-radius:14px;
+          background:linear-gradient(45deg,#ffcc00,#ff6600);
+          font-weight:800;color:#111;cursor:pointer}
+
+  /* Error Popup */
+  #errorPopup {
+    display:none;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255,0,100,0.9);
+    padding: 14px 22px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0 0 15px rgba(255,0,150,0.7);
+    z-index: 1000;
+    animation: fadeInPopup 0.3s ease;
+  }
+  @keyframes fadeInPopup {
+    from { opacity: 0; transform: translateX(-50%) translateY(-10px);}
+    to { opacity: 1; transform: translateX(-50%) translateY(0);}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="card header">
+    <img src="logo.png" alt="Logo" class="logo-img"/>
+    <div class="title">WINGO HACK</div>
+    <div class="subtitle">(Big/Small) Hack Made By UBAI</div>
+  </div>
+
+  <!-- Input -->
+  <div class="card">
+    <div style="font-weight:700;text-align:center">Fill your last 5 results</div>
+    <div class="slots" id="slots"></div>
+    <div class="controls">
+      <button class="btn big" onclick="add('BIG')">BIG</button>
+      <button class="btn small" onclick="add('SMALL')">SMALL</button>
+      <button class="btn back" onclick="back()">Back</button>
+    </div>
+  </div>
+
+  <!-- Start -->
+  <div class="card start-div">
+    <button class="start-btn" onclick="predict()">START</button>
+  </div>
+
+  <!-- Result -->
+  <div class="card result" id="resultBox">
+    <h3>Here is your result</h3>
+    <div class="res-card" id="finalRes">--</div>
+    <div class="countdown" id="countdown"></div>
+  </div>
+
+  <div class="card">
+  <a href="links.html" target="_blank">
+    <button class="tg-btn">OFFICIAL LINK'S</button>
+  </a>
+</div>
+</div>
+
+<!-- Error Popup -->
+<div id="errorPopup">⚠ Please enter last 5 results first!</div>
+
+<script>
+let slots=Array(5).fill(null);
+const slotsEl=document.getElementById("slots");
+const resultBox=document.getElementById("resultBox");
+const finalRes=document.getElementById("finalRes");
+const countdown=document.getElementById("countdown");
+
+// --- Slot Functions ---
+function renderSlots(){
+  slotsEl.innerHTML="";
+  slots.forEach(v=>{
+    const div=document.createElement("div");
+    div.className="slot"+(v?(" "+v.toLowerCase()):"");
+    div.textContent=v? v[0]:"";
+    slotsEl.appendChild(div);
+  });
+}
+function add(val){
+  const idx=slots.findIndex(s=>s===null);
+  if(idx!==-1){slots[idx]=val;renderSlots();}
+}
+function back(){
+  const idx=slots.findLastIndex(s=>s!==null);
+  if(idx!==-1){slots[idx]=null;renderSlots();}
+}
+
+// --- Error Popup ---
+function showError(msg){
+  const popup = document.getElementById("errorPopup");
+  popup.textContent = "⚠ " + msg;
+  popup.style.display = "block";
+  setTimeout(()=> popup.style.display = "none", 2500);
+}
+
+// --- Prediction Function ---
+function predict(){
+  if(slots.includes(null)){
+    showError("Please enter last 5 results first!");
+    return;
+  }
+
+  let prediction="BIG";
+  const bigCount=slots.filter(s=>s==="BIG").length;
+  const smallCount=slots.filter(s=>s==="SMALL").length;
+
+  const last4=slots.slice(1).join("");
+  const last3=slots.slice(2).join("");
+
+  if(last4==="BIGBIGBIGBIG") prediction="SMALL";
+  else if(last4==="SMALLSMALLSMALLSMALL") prediction="BIG";
+  else if(last3==="BIGBIGBIG") prediction="SMALL";
+  else if(last3==="SMALLSMALLSMALL") prediction="BIG";
+  else if(slots.join("")==="BIGSMALLBIGSMALLBIG") prediction="BIG";
+  else if(slots.join("")==="SMALLBIGSMALLBIGSMALL") prediction="SMALL";
+  else {
+    let rnd=Math.random();
+    if(bigCount>smallCount) prediction=rnd<0.75?"BIG":"SMALL";
+    else if(smallCount>bigCount) prediction=rnd<0.75?"SMALL":"BIG";
+    else prediction=rnd<0.5?"BIG":"SMALL";
+  }
+
+  finalRes.textContent=prediction;
+  finalRes.style.background=prediction==="BIG"
+    ? "linear-gradient(135deg,#ffd54a,#ffb300)"
+    : "linear-gradient(135deg,#7ef1d1,#28d8c5)";
+  finalRes.style.color=prediction==="BIG"?"#111":"#012";
+
+  resultBox.style.display="block";
+  slots=Array(5).fill(null);renderSlots();
+
+  let t=3;
+  countdown.textContent=`Closing in ${t}s`;
+  const timer=setInterval(()=>{
+    t--;
+    if(t>0) countdown.textContent=`Closing in ${t}s`;
+    else{clearInterval(timer);resultBox.style.display="none";}
+  },1000);
+}
+
+renderSlots();
+</script>
+</body>
+</html>
